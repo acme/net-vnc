@@ -307,7 +307,11 @@ sub _handshake_security {
 
     }
 
-    if ( $self->_rfb_version ge '003.008' ) {
+    # the RFB protocol always returns a result for type 2,
+    # but type 1, only for 003.008 and up
+    if ( ( $self->_rfb_version ge '003.008' && $security_type == 1 )
+        || $security_type == 2 )
+    {
         $socket->read( my $security_result, 4 )
             || die 'unexpected end of data';
         $security_result = unpack( 'I', $security_result );
