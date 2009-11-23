@@ -578,12 +578,16 @@ sub _receive_update {
     my $big_endian = $self->_big_endian;
     my $read_and_set_colour
         = $depth == 24
-        ? ( $big_endian
+        ? (
+        $big_endian
         ? \&_read_and_set_colour_24_be
-        : \&_read_and_set_colour_24_le )
-        : $depth == 16 ? ( $big_endian
+        : \&_read_and_set_colour_24_le
+        )
+        : $depth == 16 ? (
+        $big_endian
         ? \&_read_and_set_colour_16_be
-        : \&_read_and_set_colour_16_le )
+        : \&_read_and_set_colour_16_le
+        )
         : $depth == 8 ? \&_read_and_set_colour_8
         :               die 'unsupported depth';
 
