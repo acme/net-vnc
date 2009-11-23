@@ -1,0 +1,70 @@
+NAME
+    Net::VNC - A simple VNC client
+
+SYNOPSIS
+      use Net::VNC;
+
+      my $vnc = Net::VNC->new({hostname => $hostname, password => $password});
+      $vnc->login;
+
+      print $vnc->name . ": " . $vnc->width . ' x ' . $vnc->height . "\n";
+
+      my $image = $vnc->capture;
+      $image->save("out.png");
+
+DESCRIPTION
+    Virtual Network Computing (VNC) is a desktop sharing system which uses
+    the RFB (Remote FrameBuffer) protocol to remotely control another
+    computer. This module acts as a VNC client and communicates to a VNC
+    server using the RFB protocol, allowing you to capture the screen of the
+    remote computer.
+
+    This module dies upon connection errors (with a timeout of 15 seconds)
+    and protocol errors.
+
+METHODS
+  new
+    The constructor. Given a hostname and a password returns a Net::VNC
+    object:
+
+      my $vnc = Net::VNC->new({hostname => $hostname, password => $password});
+
+  login
+    Logs into the remote computer:
+
+      $vnc->login;
+
+  name
+    Returns the name of the remote computer:
+
+      print $vnc->name . ": " . $vnc->width . ' x ' . $vnc->height . "\n";
+
+  width
+    Returns the width of the remote screen:
+
+      print $vnc->name . ": " . $vnc->width . ' x ' . $vnc->height . "\n";
+
+  height
+    Returns the height of the remote screen:
+
+      print $vnc->name . ": " . $vnc->width . ' x ' . $vnc->height . "\n";
+
+  capture
+    Captures the screen of the remote computer, returning an Image::Imlib2
+    object:
+
+      my $image = $vnc->capture;
+      $image->save("out.png");
+
+AUTHOR
+    Leon Brocard acme@astray.com
+
+    Many thanks for Foxtons Ltd for giving me the opportunity to write this
+    module.
+
+COPYRIGHT
+    Copyright (C) 2006, Leon Brocard
+
+    This module is free software; you can redistribute it or modify it under
+    the same terms as Perl itself.
+
