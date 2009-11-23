@@ -1,15 +1,25 @@
---- #YAML:1.0
-name:                Net-VNC
-version:             0.36
-abstract:            ~
-license:             ~
-generated_by:        ExtUtils::MakeMaker version 6.32
-distribution_type:   module
-requires:     
-    Class::Accessor::Fast:         0
-    Crypt::DES:                    0
-    Image::Imlib2:                 0
-    Test::More:                    0
+---
+name: Net-VNC
+version: 0.37
+author:
+  - Leon Brocard acme@astray.com
+  - Chris Dolan clotho@cpan.org
+abstract: A simple VNC client
+license: perl
+resources:
+  license: http://dev.perl.org/licenses/
+requires:
+  Class::Accessor::Fast: 0
+  Crypt::DES: 0
+  Image::Imlib2: 0
+  Test::More: 0
+configure_requires:
+  Module::Build: 0.35
+provides:
+  Net::VNC:
+    file: lib/Net/VNC.pm
+    version: 0.37
+generated_by: Module::Build version 0.35
 meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
-    version: 1.2
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4

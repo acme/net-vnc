@@ -1,6 +1,6 @@
 Revision history for Perl module Net::VNC:
 
-0.37 ?
+0.37 Mon Nov 23 15:18:38 GMT 2009
   - Perltidy
   - Fix problem with passwords over 8 characters (spotted by binox)
   - Fix default image name in vnccapture (patch by Joe Julian)
