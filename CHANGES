@@ -5,6 +5,7 @@ Revision history for Perl module Net::VNC:
   - Fix problem with passwords over 8 characters (spotted by binox)
   - Fix default image name in vnccapture (patch by Joe Julian)
   - Fix reading the security result (patch by Joe Julian)
+  - Test for connectedness for login failure (patch by Joe Julian)
 
 0.36 Fri Jun 29 19:58:51 BST 2007
   - make vnccapture's outfile option work (patch by Owen Crow)

@@ -318,10 +318,7 @@ sub _handshake_security {
 
         #    warn $security_result;
         die 'login failed' if $security_result;
-    }
-
-    #elsif (!$socket->connected) {
-    elsif ( $socket->eof ) {    # XXX Should this be !$socket->connected??
+    } elsif ( !$socket->connected ) {
         die 'login failed';
     }
 }
