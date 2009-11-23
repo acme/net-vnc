@@ -265,7 +265,7 @@ sub _handshake_security {
 
         #    warn "chal: " . unpack('h*', $challenge) . "\n";
 
-        my $key = $self->password;
+        my $key = substr( $self->password, 0, 8 );
         $key = '' if ( !defined $key );
         $key .= pack( 'C', 0 ) until ( length($key) % 8 ) == 0;
 
