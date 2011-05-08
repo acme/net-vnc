@@ -157,7 +157,7 @@ sub login {
         PeerAddr => $hostname || 'localhost',
         PeerPort => $port     || '5900',
         Proto    => 'tcp',
-    ) || die "Error connecting to $hostname: $!";
+    ) || die "Error connecting to $hostname: $@";
     $socket->timeout(15);
     $self->socket($socket);
 

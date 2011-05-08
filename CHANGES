@@ -1,5 +1,8 @@
 Revision history for Perl module Net::VNC:
 
+0.38
+  - Better error upon connection problems (patch by Ken Dreyer)
+
 0.37 Mon Nov 23 15:18:38 GMT 2009
   - Perltidy
   - Fix problem with passwords over 8 characters (spotted by binox)
