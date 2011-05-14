@@ -13,6 +13,6 @@ my $build = Module::Build->new(
         'Image::Imlib2'         => '0',
         'Test::More'            => '0',
     },
-    script_files => { 'bin/vnccapture' },
+    script_files => ['bin/vnccapture'],
 );
 $build->create_build_script;
