@@ -1,25 +1,27 @@
 ---
-name: Net-VNC
-version: 0.37
+abstract: 'A simple VNC client'
 author:
-  - Leon Brocard acme@astray.com
-  - Chris Dolan clotho@cpan.org
-abstract: A simple VNC client
+  - 'Leon Brocard acme@astray.com'
+  - 'Chris Dolan clotho@cpan.org'
+build_requires: {}
+configure_requires:
+  Module::Build: 0.38
+dynamic_config: 1
+generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.110930'
 license: perl
-resources:
-  license: http://dev.perl.org/licenses/
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Net-VNC
+provides:
+  Net::VNC:
+    file: lib/Net/VNC.pm
+    version: 0.37
 requires:
   Class::Accessor::Fast: 0
   Crypt::DES: 0
   Image::Imlib2: 0
   Test::More: 0
-configure_requires:
-  Module::Build: 0.35
-provides:
-  Net::VNC:
-    file: lib/Net/VNC.pm
-    version: 0.37
-generated_by: Module::Build version 0.35
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.37
