@@ -16,7 +16,7 @@ name: Net-VNC
 provides:
   Net::VNC:
     file: lib/Net/VNC.pm
-    version: 0.37
+    version: 0.38
 requires:
   Class::Accessor::Fast: 0
   Crypt::DES: 0

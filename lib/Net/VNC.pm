@@ -13,7 +13,7 @@ __PACKAGE__->mk_accessors(
         _bpp _true_colour _big_endian _image_format
         )
 );
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 my $MAX_PROTOCOL_VERSION = 'RFB 003.008' . chr(0x0a);  # Max version supported
 
