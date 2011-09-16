@@ -1,6 +1,6 @@
 Revision history for Perl module Net::VNC:
 
-0.39
+0.39 Fri Sep 16 13:56:21 BST 2011
   - Add Apple Remote Desktop authentication (patch by Maurice Castro)
 
 0.38 Sat May 14 16:19:03 BST 2011
