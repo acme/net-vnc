@@ -405,7 +405,7 @@ sub _handshake_security {
 }
 
 sub _mpi_randomize {
-    my ( $sefl, l ) = @_;
+    my ( $self, $l ) = @_;
     my $bits  = int( $l / 8 ) * 8;
     my $bytes = int( $bits / 8 );
     my $r
