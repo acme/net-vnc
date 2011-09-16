@@ -1,5 +1,8 @@
 Revision history for Perl module Net::VNC:
 
+0.39
+  - Add Apple Remote Desktop authentication (patch by Maurice Castro)
+
 0.38 Sat May 14 16:19:03 BST 2011
   - Better error upon connection problems (patch by Ken Dreyer)
   - Add key events

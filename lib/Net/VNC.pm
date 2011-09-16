@@ -7,7 +7,7 @@ use Image::Imlib2;
 use IO::Socket::INET;
 use bytes;
 __PACKAGE__->mk_accessors(
-    qw(hostname port password socket name width height depth save_bandwidth
+    qw(hostname port username password socket name width height depth save_bandwidth
         hide_cursor server_endian
         _pixinfo _colourmap _framebuffer _cursordata _rfb_version
         _bpp _true_colour _big_endian _image_format
@@ -236,7 +236,10 @@ sub _handshake_security {
             push @security_types, $security_type;
         }
 
-        for my $preferred_type ( 2, 1 ) {
+        my @pref_types = ( 1, 2 );
+        @pref_types = ( 30, 1, 2 ) if $self->username;
+
+        for my $preferred_type (@pref_types) {
             if ( 0 < grep { $_ == $preferred_type } @security_types ) {
                 $security_type = $preferred_type;
                 last;
@@ -301,6 +304,84 @@ sub _handshake_security {
             $socket->print( pack( 'C', 1 ) );
         }
 
+    } elsif ( $security_type == 30 ) {
+
+        require Crypt::GCrypt::MPI;
+        require Crypt::Random;
+
+        # ARD - Apple Remote Desktop - authentication
+        $socket->print( pack( 'C', 30 ) );    # use ARD
+        $socket->read( my $gen, 2 ) || die 'unexpected end of data';
+        $socket->read( my $len, 2 ) || die 'unexpected end of data';
+        my $keylen = $self->_bin_int($len);
+        $socket->read( my $mod,  $keylen ) || die 'unexpected end of data';
+        $socket->read( my $resp, $keylen ) || die 'unexpected end of data';
+
+        my $genmpi = Crypt::GCrypt::MPI::new(
+            secure => 0,
+            value  => $self->_bin_int($gen),
+            format => Crypt::GCrypt::MPI::FMT_USG()
+        );
+        my $modmpi = Crypt::GCrypt::MPI::new(
+            secure => 0,
+            value  => $mod,
+            format => Crypt::GCrypt::MPI::FMT_USG()
+        );
+        my $respmpi = Crypt::GCrypt::MPI::new(
+            secure => 0,
+            value  => $resp,
+            format => Crypt::GCrypt::MPI::FMT_USG()
+        );
+        my $privmpi = $self->_mpi_randomize($keylen);
+
+        my $pubmpi = $genmpi->copy()->powm( $privmpi, $modmpi );
+        my $keympi = $respmpi->copy()->powm( $privmpi, $modmpi );
+        my $pub = $self->_mpi_2_bytes( $pubmpi, $keylen );
+        my $key = $self->_mpi_2_bytes( $keympi, $keylen );
+        my $md5 = Crypt::GCrypt->new( type => 'digest', algorithm => 'md5' );
+        $md5->write($key);
+        my $shared  = $md5->read();
+        my $passlen = length( $self->password ) + 1;
+        my $userlen = length( $self->username ) + 1;
+        $passlen = 64 if ( $passlen > 64 );
+        my $passpad = 64 - $passlen;
+        $userlen = 64 if ( $userlen > 64 );
+        my $userpad = 64 - $userlen;
+        my $up      = Crypt::Random::makerandom_octet(
+            Length   => $userpad,
+            Strength => 1
+        );
+        my $pp = Crypt::Random::makerandom_octet(
+            Length   => $passpad,
+            Strength => 1
+        );
+        my $userpass = pack "a*xa*a*xa*", $self->username, $up,
+            $self->password, $pp;
+        my $aes = Crypt::GCrypt->new(
+            type      => 'cipher',
+            algorithm => 'aes',
+            mode      => 'ecb'
+        );
+        $aes->start('encrypting');
+        $aes->setkey($shared);
+        my $cyptxt = $aes->encrypt($userpass);
+        $cyptxt .= $aes->finish;
+        $socket->write( $cyptxt, 128 );  # appears to be only writing 16 bytes
+        $socket->write( $pub, $keylen ); # appears to be only writing 16 bytes
+        $socket->read( my $security_result, 4 )
+            || die 'unexpected end of data';
+        $security_result = $self->_bin_int($security_result);
+
+        if ( $security_result == 1 ) {
+            $socket->read( my $len, 4 ) || die 'unexpected end of data';
+            $socket->read( my $msg, $self->_bin_int($len) )
+                || die 'unexpected end of data';
+            die "VNC Authentication Failed: $msg";
+        } elsif ( $security_result == 2 ) {
+
+            # too many
+            die "VNC Authentication Failed - too many tries";
+        }
     } else {
 
         die "no supported vnc authentication mechanism";
@@ -321,6 +402,42 @@ sub _handshake_security {
     } elsif ( !$socket->connected ) {
         die 'login failed';
     }
+}
+
+sub _mpi_randomize {
+    my ( $sefl, l ) = @_;
+    my $bits  = int( $l / 8 ) * 8;
+    my $bytes = int( $bits / 8 );
+    my $r
+        = Crypt::Random::makerandom_octet( Length => $bytes, Strength => 1 );
+    my @ra = unpack( "C*", $r );
+    my $mpi = Crypt::GCrypt::MPI::new( secure => 0, value => 0 );
+    my $tfs = Crypt::GCrypt::MPI::new( secure => 0, value => 256 );
+    for ( my $i = 0; $i < $bytes; $i++ ) {
+        $mpi = $mpi->mul($tfs);
+        my $n = $ra[$i];
+        $mpi = $mpi->add(
+            Crypt::GCrypt::MPI::new( secure => 0, value => $n ) );
+    }
+    return $mpi;
+}
+
+sub _mpi_2_bytes {
+    my ( $self, $mpi, $sz ) = @_;
+    my $s   = $mpi->print( Crypt::GCrypt::MPI::FMT_USG() );
+    my $pad = $sz - length($s);
+    return pack( "x[$pad]a*", $s );
+}
+
+sub _bin_int {
+    my ( $self, $s ) = @_;
+    my @a = unpack( "C*", $s );
+    my $r = 0;
+    for ( my $i = 0; $i < @a; $i++ ) {
+        $r = 256 * $r;
+        $r += $a[$i];
+    }
+    return $r;
 }
 
 sub _client_initialization {
@@ -1058,7 +1175,9 @@ The constructor. Given a hostname and a password returns a L<Net::VNC> object:
 
   my $vnc = Net::VNC->new({hostname => $hostname, password => $password});
 
-Optionally, you can also specify a port, which defaults to 5900.
+Optionally, you can also specify a port, which defaults to 5900. For ARD
+(Apple Remote Desktop) authentication you must also specify a username.
+You must also install Crypt::GCrypt::MPI and Crypt::Random.
 
 =head2 login
 
@@ -1199,6 +1318,10 @@ high-compression transfer encodings in the future.
 Leon Brocard acme@astray.com
 
 Chris Dolan clotho@cpan.org
+
+Apple Remote Desktop authentication based on LibVNCServer
+
+Maurice Castro maurice@ipexchange.com.au
 
 Many thanks for Foxtons Ltd for giving Leon the opportunity to write
 the original version of this module.
