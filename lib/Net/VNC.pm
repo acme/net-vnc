@@ -577,7 +577,6 @@ sub capture {
     my $self   = shift;
     my $socket = $self->socket;
 
-    #$self->_send_pointer_event();
     $self->_send_update_request();
     while ( ( my $message_type = $self->_receive_message() ) != 0 ) {
 
@@ -655,18 +654,16 @@ sub send_key_event_string {
     }
 }
 
-sub _send_pointer_event {
-    my $self = shift;
+sub send_pointer_event {
+    my ($self, $button_mask, $x, $y) = @_;
 
-    # pointer event - doesn't seem to work?
-    my $socket = $self->socket;
-    $socket->print(
+    $self->socket->print(
         pack(
             'CCnn',
-            5,                # message_type
-            0,                # button_mask
-            $self->width,     # x
-            $self->height,    # y
+            5,              # message type
+            $button_mask,   # button-mask
+            $x,             # x-position
+            $y,             # y-position
         )
     );
 }
@@ -1130,6 +1127,43 @@ sub _receive_cut_text {
     return 1;
 }
 
+sub mouse_move_to {
+    my ($self, $x, $y) = @_;
+    $self->send_pointer_event(0, $x, $y);
+
+    my $cursordata = $self->_cursordata;
+    if ( !$cursordata ) {
+        $self->_cursordata( $cursordata = {} );
+    }
+    $cursordata->{x} = $x;
+    $cursordata->{y} = $y;
+}
+
+sub mouse_click {
+    my ($self) = @_;
+
+    my $cursordata = $self->_cursordata;
+    if ( !$cursordata ) {
+        $self->_cursordata( $cursordata = { x => 0, y => 0 } );
+    }
+
+    $self->send_pointer_event(1, $cursordata->{x}, $cursordata->{y});
+    $self->send_pointer_event(0, $cursordata->{x}, $cursordata->{y});
+}
+
+sub mouse_right_click {
+    my ($self) = @_;
+
+    my $cursordata = $self->_cursordata;
+    if ( !$cursordata ) {
+        $self->_cursordata( $cursordata = { x => 0, y => 0 } );
+    }
+
+    $self->send_pointer_event(4, $cursordata->{x}, $cursordata->{y});
+    $self->send_pointer_event(0, $cursordata->{x}, $cursordata->{y});
+}
+
+
 1;
 
 __END__
@@ -1292,6 +1326,26 @@ Send a key down event followed by a key up event:
 Send key events for every character in a string:
 
   $vnc->send_key_event_string('Hello');
+
+=head2 send_pointer_event( $button_mask, $x, $y )
+
+Send pointer event (usually that's mouse). This is used to move the pointer or
+making clicks or drags.
+
+You should find it easily to call C<mouse_move> or <mouse_click> methods instead.
+
+=head2 mouse_move($x, $y)
+
+Send the pointer to the given position. The cursor is instantly jump to there
+instead of smoothly move to there.
+
+=head2 mouse_click
+
+Click on current pointer position.
+
+=head2 mouse_right_click
+
+Right-click on current pointer position.
 
 =head1 BUGS AND LIMITATIONS
 
