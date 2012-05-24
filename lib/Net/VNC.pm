@@ -649,7 +649,7 @@ sub send_key_event {
 sub send_key_event_string {
     my ( $self, $string ) = @_;
     foreach my $key ( map {ord} split //, $string ) {
-        warn $key;
+        #warn $key;
         $self->send_key_event($key);
     }
 }
